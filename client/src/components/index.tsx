@@ -6,5 +6,6 @@ import ProtectedRoute from "./ProtectedRoute";
 import SuccessDialog from "./SuccessDialog";
 import SnackBar from "./SnackBar";
 import FormRow from "./FormRow";
+import HandlerDirect from "./HandlerDirect";
 
-export { Navbar, Card, SimpleSlider, Footer, ProtectedRoute,SuccessDialog ,SnackBar ,FormRow }
+export { Navbar, Card, SimpleSlider, Footer, ProtectedRoute, SuccessDialog, SnackBar, HandlerDirect, FormRow }

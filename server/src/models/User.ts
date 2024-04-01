@@ -19,7 +19,6 @@ const UserSchema = new Schema({
   },
   password: {
     type: String,
-    // required: [false, "Please provide password"],
     required: false,
     minlength: [6, "password must contain more than 6 letter "],
     select: false,
@@ -40,6 +39,20 @@ const UserSchema = new Schema({
     default: "email",
     require: true,
   },
+  OTP: {
+    type: String,
+    required: false,
+    trim: true,
+  },
+  otpExpiresIn: {
+    type: Date,
+    required: false,
+  },
+  verified: {
+    type: Boolean,
+    require: true,
+    default: false,
+  },
   itemsInCart: [{ type: ObjectId, ref: "carts" }],
 });
 
@@ -49,6 +62,11 @@ const UserSchema = new Schema({
 //   const salt = await bcrypt.genSalt(10);
 //   this.password = await bcrypt.hash(this.password, salt);
 // });
+
+UserSchema.methods.verifyOTP = async function (OTP: string) {
+  const isMatch = OTP === this.OTP;
+  return isMatch;
+};
 
 UserSchema.methods.createAccessToken = function () {
   return jwt.sign(

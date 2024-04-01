@@ -4,6 +4,7 @@ import "express-async-errors";
 import { BadRequestError } from "../errors";
 import User from "../models/User";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import bcrypt from "bcrypt"
 
 interface IJwtPayload extends JwtPayload {
   email: string;
@@ -55,7 +56,9 @@ const setPassword = async (req: Request, res: Response) => {
     );
   }
 
-  await User.findOneAndUpdate({ email }, { password: password });
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  await User.findOneAndUpdate({ email }, { password: hashedPassword });
   res.status(StatusCodes.OK).json({ msg: "Your password was set" });
 };
 

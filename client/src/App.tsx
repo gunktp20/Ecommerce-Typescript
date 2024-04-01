@@ -1,12 +1,16 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ProtectedRoute } from "./components";
+import { HandlerDirect, ProtectedRoute } from "./components";
 // import AdminPanel from "./pages/AdminPanel";
 import SharedLayout from "./pages/SharedLayout";
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import { useAppSelector } from "./app/hook";
 
 function App() {
+
+  const authStorage = useAppSelector(state => state.auth)
+
   return (
     <BrowserRouter>
       <Routes>
@@ -18,12 +22,18 @@ function App() {
             </ProtectedRoute>
           }
         >
-
+          <Route index element={<Landing/>}/>
         </Route>
         {/* <Route path="/register" element={<Register />} /> */}
-        <Route index element={<Landing />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/home" element={<Landing />} />
+        <Route path="/register" element={
+          <HandlerDirect>
+            <Register />
+          </HandlerDirect>
+        } />
+        <Route path="/login" element={<HandlerDirect>
+          <Login />
+        </HandlerDirect>} />
         {/* <Route path="/admin" element={<AdminPanel />} /> */}
         {/* <Route
           path="/product"
@@ -42,7 +52,7 @@ function App() {
           }
         /> */}
       </Routes>
-      
+
     </BrowserRouter>
   );
 }

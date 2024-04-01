@@ -9,38 +9,87 @@ import api from "../../services/api";
 import { Oval } from "react-loader-spinner";
 import { Alert } from "@mui/material";
 import { setCredential } from "../../features/auth/authSlice";
-import { useAppDispatch } from "../../app/hook";
-import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../app/hook";
+import { Link, useNavigate } from "react-router-dom";
 import { FaLock } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
 import { IoMdEyeOff } from "react-icons/io";
 import { AxiosError } from "axios";
 import LoginWithGoogleModal from "../../components/LoginWithGoogleModal";
 import { gapi } from "gapi-script";
+import { useGoogleLogin } from "react-google-login";
 
 function SetUpUser() {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const clientId =
-    "58393219866-rgf9c2p16vop971javfn875ehtigi20k.apps.googleusercontent.com";
+  const authStorage = useAppSelector(state => state.auth)
+  if (authStorage.user || authStorage.token) {
+    navigate("/")
+  }
+  const dispatch = useAppDispatch();
+
+  const onSuccess = async (res) => {
+    console.log("LOGIN SUCCESS ! Current user:", res.profileObj);
+    console.log("res_tokenObj", res.tokenObj);
+    try {
+      const { data } = await api.post(`/auth/google-auth/`, {
+        tokens: { ...res.tokenObj },
+      });
+      setIsLoading(false);
+      dispatch(setCredential({ user: data?.user, token: data?.accessToken }));
+      navigate("/");
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        const msg =
+          typeof err?.response?.data?.msg === "object"
+            ? err?.response?.data?.msg[0]
+            : err?.response?.data?.msg;
+        setShowAlert(true);
+        setAlertType("error");
+        setAlertText(msg);
+        setIsLoading(false);
+        return;
+      }
+    }
+  };
+  const onFailure = (res) => {
+    console.log("LOGIN FAILED! res:", res);
+  };
+
+  const clientId = "58393219866-rgf9c2p16vop971javfn875ehtigi20k.apps.googleusercontent.com";
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [alertType, setAlertType] = useState<"info" | "success" | "error">(
     "error"
   );
-  function navigateCB(url: string) {
-    // window.location.href = url;
-    window.open(url);
+  const { signIn, loaded } = useGoogleLogin({
+    onSuccess,
+    onFailure,
+    clientId,
+    cookiePolicy: "single_host_origin",
+    isSignedIn: false,
+  })
+
+
+  // function navigateCB(url: string) {
+  //   // window.location.href = url;
+  //   window.open(url);
+  // }
+
+  function start() {
+    gapi.client.init({
+      clientId: clientId,
+      scope: "",
+    });
   }
 
   useEffect(() => {
-    function start() {
-      gapi.client.init({
-        clientId: clientId,
-        scope: "",
-      });
-    }
-    gapi.load("client:auth2",start);
+    // if (authStorage.user) {
+    //   setTimeout(() => {
+    //     navigate("/");
+    //   });
+    // }
+
+    gapi.load("client:auth2", start);
   }, []);
 
   const [alertText, setAlertText] = useState<string>("");
@@ -65,10 +114,9 @@ function SetUpUser() {
         email,
         password,
       });
-      console.log(data);
       dispatch(setCredential({ user: data?.user, token: data?.accessToken }));
-      navigate("/");
       setIsLoading(false);
+      navigate("/");
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         const msg =
@@ -84,17 +132,18 @@ function SetUpUser() {
     }
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      const { data } = await api.post(`/auth/google-auth/`);
-      console.log(data);
-      setIsLoading(false);
-      navigateCB(data.url);
-    } catch (err) {
-      console.log(err);
-      setIsLoading(false);
-    }
-  };
+  // const loginWithGoogle = async () => {
+  //   try {
+  //     const { data } = await api.post(`/auth/google-auth/`);
+  //     console.log(data);
+  //     setIsLoading(false);
+  //     navigateCB(data.url);
+  //   } catch (err) {
+  //     console.log(err);
+  //     setIsLoading(false);
+  //   }
+  // };
+
 
   return (
     <Wrapper>
@@ -106,12 +155,12 @@ function SetUpUser() {
 
       <div className="flex flex-col justify-center items-center">
         {/* Login Form Start*/}
-        <div className="bg-white w-[540px] sm:w-[95%] rounded-xl p-8 absolute z-[2] top-[12.5rem]">
+        <div className="bg-white w-[540px] sm:w-[95%] rounded-xl p-8 absolute z-[2] top-[7.5rem]">
           <div className="flex flex-col">
             <div className="font-[400] text-[27px] text-gray-800">
               Welcome back
             </div>
-            <LoginWithGoogleModal />
+            {/* <LoginWithGoogleModal setShowAlert={setShowAlert} setAlertText={setAlertText} setAlertType={setAlertType} /> */}
             <div className="font-[300] text-[13.3px] text-gray-500">
               Log in to the member side for tracking your status of orders
             </div>
@@ -164,7 +213,7 @@ function SetUpUser() {
               {isFormattEmailValid ? "" : "* please provide a valid e-mail"}
             </div>
           </div>
-          <div className="relative mt-6 mb-7  items-center flex">
+          <div className="relative mt-6 mb-4  items-center flex">
             <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
               <svg
                 className="w-4 h-4 text-gray-500 dark:text-gray-400"
@@ -199,11 +248,15 @@ function SetUpUser() {
             {/* <div className="absolute text-red-500 text-[11.4px] bottom-[-1.3rem]">
                 {isFormattEmailValid ? "" : "* please provide a valid e-mail"}
               </div> */}
+
+          </div>
+          <div className="flex w-[100%] justify-end mb-3">
+            <Link to="/forget-pass" className="text-[10.5px] font-bold text-primary-600 hover:text-primary-700">Forget Password ?</Link>
           </div>
           <button
             onClick={login}
             disabled={isLoading || !email || !password || !validate(email)}
-            className="bg-primary-500 flex justify-center disabled:bg-gray-300 items-center text-sm text-white w-[100%] h-[42px] rounded-lg mb-8"
+            className="bg-primary-500 flex justify-center disabled:bg-gray-300 items-center text-sm text-white w-[100%] h-[42px] rounded-lg mb-3"
           >
             {isLoading ? (
               <Oval
@@ -222,14 +275,17 @@ function SetUpUser() {
               "Sign In"
             )}
           </button>
-          <div className="flex relative justify-center items-center mb-7">
+          <div className="flex item w-[100%] justify-end mb-6" >
+            <div className="text-[10.8px]">Not a member yet ? <Link to="/register" className="text-primary-600 hover:text-primary-600">Sign Up</Link></div>
+          </div>
+          <div className="flex relative justify-center items-center mb-10 mt-9">
             <div className="absolute bg-white z-[2] px-2 rounded-[100%] text-gray-600 text-sm">
               OR
             </div>
-            <div className="bg-gray-300 absolute w-[100%] h-[1px]"></div>
+            <div className="bg-gray-300 absolute w-[80%] h-[1px]"></div>
           </div>
           <button
-            onClick={loginWithGoogle}
+            onClick={signIn}
             className="border-[1px] h-[42px] mb-5 w-[100%] border-gray-300 rounded-lg flex items-center justify-center"
           >
             <FcGoogle className="text-[23px]" />

@@ -5,12 +5,12 @@ interface IProp {
     children: string | JSX.Element
 }
 
-const ProtectedRoute = ({ children }: IProp) => {
-    const { user ,token} = useAppSelector(state => state.auth);
-    if (!user || !token) {
+const HandlerDirect = ({ children }: IProp) => {
+    const { user, token } = useAppSelector(state => state.auth);
+    if (user && token) {
         return <Navigate to="/home" />;
     }
     return children;
 };
 
-export default ProtectedRoute;
+export default HandlerDirect;

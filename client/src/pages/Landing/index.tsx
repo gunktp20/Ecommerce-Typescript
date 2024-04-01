@@ -16,7 +16,7 @@ function Landing() {
         isDrawerOpen={isNavlinksOpen}
         setIsDrawerOpen={setIsNavlinksOpen}
       />
-      <div className="z-[1] w-[100%] flex justify-center mt-[21rem] sm:mt-[12.3rem]">
+      <div className="z-[1] w-[100%] flex justify-center mt-[12rem] sm:mt-[12.3rem]">
         <div className="w-[80%] flex justify-center flex-col items-center z-[1]">
           <div className="text-[45px] text-white select-none">
             {" "}

@@ -1,6 +1,6 @@
 import Wrapper from "../../assets/wrappers/Register";
 import { validate } from "email-validator";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import LandingWallpaper from "../Landing/LandingWallpaper";
 import BigNavbar from "../Landing/BigNavbar";
@@ -13,16 +13,22 @@ import { FaLock } from "react-icons/fa";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import { Alert } from "@mui/material";
 import { setCredential } from "../../features/auth/authSlice";
-import { useAppDispatch } from "../../app/hook";
-import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../app/hook";
+import { Link, useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 
 function SetUpUser() {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const authStorage = useAppSelector(state => state.auth)
+  if (authStorage.user || authStorage.token) {
+    navigate("/")
+  }
+  const dispatch = useAppDispatch();
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [alertType, setAlertType] = useState<"info" | "success" | "error">(
     "error"
   );
+
   const [alertText, setAlertText] = useState<string>("");
   // validated states
   const [lowerValidated, setLowerValidated] = useState(false);
@@ -58,9 +64,18 @@ function SetUpUser() {
       console.log(data);
       setIsLoading(false);
       setStep(2);
-    } catch (err) {
-      console.log(err);
-      setIsLoading(false);
+    } catch (err : unknown) {
+      if (err instanceof AxiosError) {
+        const msg =
+          typeof err?.response?.data?.msg === "object"
+            ? err?.response?.data?.msg[0]
+            : err?.response?.data?.msg;
+        setShowAlert(true);
+        setAlertType("error");
+        setAlertText(msg);
+        setIsLoading(false);
+        return;
+      }
     }
   };
 
@@ -171,6 +186,8 @@ function SetUpUser() {
     }
   };
 
+
+
   return (
     <Wrapper>
       <BigNavbar />
@@ -182,7 +199,7 @@ function SetUpUser() {
       <div className="flex flex-col justify-center items-center">
         {/* Login Form Start*/}
         {step === 1 && (
-          <div className="bg-white w-[540px] sm:w-[95%] rounded-xl p-8 absolute z-[2] top-[12.5rem]">
+          <div className="bg-white w-[540px] sm:w-[95%] rounded-xl p-8 absolute z-[2] top-[10rem]">
             <div className="flex flex-col">
               <div className="font-[400] text-[27px] text-gray-800">
                 Welcome to Ecommerce
@@ -242,7 +259,7 @@ function SetUpUser() {
             <button
               onClick={sendEmailOTP}
               disabled={isLoading || !email || !validate(email)}
-              className="bg-primary-500 flex justify-center disabled:bg-gray-300 items-center text-sm text-white w-[100%] h-[42px] rounded-lg mb-8"
+              className="bg-primary-500 flex justify-center disabled:bg-gray-300 items-center text-sm text-white w-[100%] h-[42px] rounded-lg mb-4"
             >
               {isLoading ? (
                 <Oval
@@ -261,11 +278,14 @@ function SetUpUser() {
                 "Continue"
               )}
             </button>
-            <div className="flex relative justify-center items-center mb-7">
+            <div className="w-[100%] flex justify-end mb-4">
+              <div className="flex text-[10.8px]">Already is a member ? <Link to="/login" className="pl-1 text-primary-500 hover:text-primary-600">Sign In</Link></div>
+            </div>
+            <div className="flex relative justify-center items-center mb-10 mt-9">
               <div className="absolute bg-white z-[2] px-2 rounded-[100%] text-gray-600 text-sm">
                 OR
               </div>
-              <div className="bg-gray-300 absolute w-[100%] h-[1px]"></div>
+              <div className="bg-gray-300 absolute w-[80%] h-[1px]"></div>
             </div>
             <button className="border-[1px] h-[42px] mb-5 w-[100%] border-gray-300 rounded-lg flex items-center justify-center">
               <FcGoogle className="text-[23px]" />
@@ -281,7 +301,7 @@ function SetUpUser() {
           </div>
         )}
         {step === 2 && (
-          <div className="bg-white w-[540px] sm:w-[95%] rounded-xl p-8 absolute z-[2] top-[12.5rem]">
+          <div className="bg-white w-[540px] sm:w-[95%] rounded-xl p-8 absolute z-[2] top-[10.5rem]">
             <button
               onClick={() => {
                 setStep(1);
@@ -352,12 +372,12 @@ function SetUpUser() {
             </button>
             <div className="text-[11.7px] text-center">
               Have not received your Password ?
-              <button className="ml-3 text-primary-500"> Resend Agian</button>
+              <button className="ml-3 text-primary-500"> Resend Again</button>
             </div>
           </div>
         )}
         {step === 3 && (
-          <div className="bg-white w-[540px] sm:w-[95%] rounded-xl p-8 absolute z-[2] top-[12.5rem]">
+          <div className="bg-white w-[540px] sm:w-[95%] rounded-xl p-8 absolute z-[2] top-[8.5rem]">
             <button
               onClick={() => {
                 setStep(2);
@@ -436,41 +456,36 @@ function SetUpUser() {
             <div className="flex flex-col gap-2 mb-7 mt-5">
               <div className="flex text-[11.3px] text-gray-500 pl-3 items-center gap-4">
                 <IoIosCheckmarkCircle
-                  className={`text-[16px] ${
-                    lowerValidated ? "text-primary-500" : "text-gray-400"
-                  }`}
+                  className={`text-[16px] ${lowerValidated ? "text-primary-500" : "text-gray-400"
+                    }`}
                 />{" "}
                 At least one lowercase letter
               </div>
               <div className="flex text-[11.3px] text-gray-500 pl-3 items-center gap-4">
                 <IoIosCheckmarkCircle
-                  className={`text-[16px] ${
-                    upperValidated ? "text-primary-500" : "text-gray-400"
-                  }`}
+                  className={`text-[16px] ${upperValidated ? "text-primary-500" : "text-gray-400"
+                    }`}
                 />{" "}
                 At least one uppercase letter
               </div>
               <div className="flex text-[11.3px] text-gray-500 pl-3 items-center gap-4">
                 <IoIosCheckmarkCircle
-                  className={`text-[16px] ${
-                    numberValidated ? "text-primary-500" : "text-gray-400"
-                  }`}
+                  className={`text-[16px] ${numberValidated ? "text-primary-500" : "text-gray-400"
+                    }`}
                 />{" "}
                 At least one number
               </div>
               <div className="flex text-[11.3px] text-gray-500 pl-3 items-center gap-4">
                 <IoIosCheckmarkCircle
-                  className={`text-[16px] ${
-                    specialValidated ? "text-primary-500" : "text-gray-400"
-                  }`}
+                  className={`text-[16px] ${specialValidated ? "text-primary-500" : "text-gray-400"
+                    }`}
                 />{" "}
                 At least one special character
               </div>
               <div className="flex text-[11.3px] text-gray-500 pl-3 items-center gap-4">
                 <IoIosCheckmarkCircle
-                  className={`text-[16px] ${
-                    lengthValidated ? "text-primary-500" : "text-gray-400"
-                  }`}
+                  className={`text-[16px] ${lengthValidated ? "text-primary-500" : "text-gray-400"
+                    }`}
                 />{" "}
                 At least 8 characters
               </div>

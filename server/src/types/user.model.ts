@@ -5,11 +5,15 @@ export interface User {
   email: string;
   role: "user" | "admin";
   accountType: "google" | "email";
+  OTP: string;
+  otpExpiresIn: Date;
+  verified: boolean;
   itemsInCart: [];
 }
 
 export interface UserDocument extends User, Document {
   comparePassword: (candidatePassword: string) => Promise<Boolean>;
+  verifyOTP: (OTP: string) => Promise<Boolean>;
   createAccessToken: () => Promise<string>;
   createRefreshToken: () => Promise<string>;
 }

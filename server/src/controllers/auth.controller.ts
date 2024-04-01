@@ -20,14 +20,32 @@ const sendOTPInEmail = async (req: Request, res: Response) => {
     throw new BadRequestError("Invalid E-mail formatt");
   }
 
-  const emailIsExist = await UserVerification.findOne({
+  const user = await User.findOne({
     email: req.params.email,
   });
 
-  if (emailIsExist) {
-    const userVerification = await UserVerification.findOneAndUpdate(
+  if (!user) {
+    const newUser = await User.create({
+      email: req.params.email,
+      otpExpiresIn: expiresIn,
+      OTP,
+    });
+    await transporter.sendMail({
+      from: "arrliver@gmail.com",
+      to: req.params.email,
+      html: FORM_VERIFY_EMAIL(newUser.OTP),
+    });
+    return res.status(StatusCodes.OK).json({ msg: "Sent e-mail verification" });
+  }
+
+  if (user && user?.verified) {
+    throw new BadRequestError("User is already verified");
+  }
+
+  if (user && !user?.verified) {
+    await User.findOneAndUpdate(
       { email: req.params.email },
-      { OTP: OTP, expiresIn }
+      { OTP: OTP, otpExpiresIn: expiresIn }
     );
     await transporter.sendMail({
       from: "arrliver@gmail.com",
@@ -36,19 +54,6 @@ const sendOTPInEmail = async (req: Request, res: Response) => {
     });
     return res.status(StatusCodes.OK).json({ msg: "Sent e-mail verification" });
   }
-
-  const userVerification = await UserVerification.create({
-    email: req.params.email,
-    expiresIn,
-    OTP,
-  });
-
-  await transporter.sendMail({
-    from: "arrliver@gmail.com",
-    to: req.params.email,
-    html: FORM_VERIFY_EMAIL(userVerification.OTP),
-  });
-  res.status(StatusCodes.OK).json({ msg: "Sent e-mail verification" });
 };
 
 const verifyEmailWithOTP = async (req: Request, res: Response) => {
@@ -60,7 +65,7 @@ const verifyEmailWithOTP = async (req: Request, res: Response) => {
   if (!OTP) {
     throw new BadRequestError("Please provide an OTP");
   }
-  const user = await UserVerification.findOne({
+  const user = await User.findOne({
     email,
   });
 
@@ -72,7 +77,7 @@ const verifyEmailWithOTP = async (req: Request, res: Response) => {
     throw new BadRequestError(`E-mail was verified`);
   }
 
-  const isExpired = await checkExpried(user.expiresIn);
+  const isExpired = await checkExpried(user.otpExpiresIn);
   if (isExpired) {
     throw new BadRequestError(`Your OTP was expired`);
   }
@@ -83,7 +88,6 @@ const verifyEmailWithOTP = async (req: Request, res: Response) => {
   }
   user.verified = true;
   await user.save();
-  await User.create({ email });
   const token = jwt.sign({ email }, process.env.JWT_EMAIL_VERIFIED as string, {
     expiresIn: "1m",
   });
@@ -135,18 +139,23 @@ const login = async (req: Request, res: Response) => {
   }
 
   if (!validator.isEmail(email)) {
-    throw new BadRequestError("Invalid E-mail formatt");
+    throw new BadRequestError("Invalid E-mail format");
   }
 
-  const userVerification = await UserVerification.findOne({ email });
+  const user = await User.findOne({ email });
 
-  if (!userVerification) {
+  if (!user) {
     throw new BadRequestError(`Not found your account`);
   }
-  if (!userVerification.verified) {
+  if (!user.verified) {
     throw new BadRequestError(`Please verify your E-mail first`);
   }
-  const user = await User.findOne({ email });
+
+  const isPasswordCorrect = await user.comparePassword(password);
+  if(!isPasswordCorrect){
+    throw new UnAuthenticatedError("password is not correct")
+  }
+
   res.status(StatusCodes.OK).json({
     user,
     accessToken: user?.createAccessToken(),
@@ -183,84 +192,65 @@ const loginWithGoogle = async (req: Request, res: Response) => {
   // const code = req.query.code as string;
   // console.log("CODEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", code);
   const { tokens } = req?.body;
-  try {
-    const redirectURL = "http://127.0.0.1:5000/auth/google-auth/callback";
-    // const redirectURL = "http://localhost:5000/auth/google-auth/callback";
-    const oAuth2Client = new OAuth2Client(
-      process.env.CLIENT_ID,
-      process.env.CLIENT_SECRET,
-      redirectURL
-    );
-    // const r = await oAuth2Client.getToken(code);
-    // console.log(
-    //   "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
-    //   r.tokens
-    // );
-    // Make sure to set the credentials on the OAuth2 client.
-    await oAuth2Client.setCredentials(tokens);
-    // console.info("Tokens acquired.");
-    // const user = oAuth2Client.credentials;
-    // console.log("credentials", user);
-    const data = await getUserData(
-      // oAuth2Client.credentials.access_token as string
-      oAuth2Client.credentials.access_token as string
-    );
-    console.log(data);
-    const user = await User.findOne({ email: data?.email });
-    const userVerification = await UserVerification.findOne({
+
+  const redirectURL = "http://127.0.0.1:5000/auth/google-auth/callback";
+  // const redirectURL = "http://localhost:5000/auth/google-auth/callback";
+  const oAuth2Client = new OAuth2Client(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    redirectURL
+  );
+  // const r = await oAuth2Client.getToken(code);
+  // console.log(
+  //   "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+  //   r.tokens
+  // );
+  // Make sure to set the credentials on the OAuth2 client.
+  await oAuth2Client.setCredentials(tokens);
+  // console.info("Tokens acquired.");
+  // const user = oAuth2Client.credentials;
+  // console.log("credentials", user);
+  const data = await getUserData(
+    // oAuth2Client.credentials.access_token as string
+    oAuth2Client.credentials.access_token as string
+  );
+  const user = await User.findOne({ email: data?.email });
+
+  if (!user) {
+    const newUser = await User.create({
       email: data?.email,
+      verified: true,
+      accountType: "google",
     });
-  
-    if (user?.accountType !== "google" && userVerification?.verified) {
-      throw new BadRequestError(
-        "E-mail that you provide was already in used , Please try other account"
-      );
-    }
-
-    if (!userVerification?.verified) {
-      await UserVerification.findOneAndUpdate(
-        {
-          email: data?.email,
-        },
-        { verified: true }
-      );
-    }
-
-    if(!user && userVerification){
-      await UserVerification.findOneAndUpdate(
-        {
-          email: data?.email,
-        },
-        { verified: true }
-      );
-    }
-
-    if(!user && !userVerification){
-      const newUser = await User.create({ email:data?.email ,accountType:"google"});
-      const accessToken = newUser?.createAccessToken()
-      const refreshToken = newUser?.createRefreshToken()
-      return res.status(StatusCodes.OK).json({newUser,accessToken,refreshToken})
-    }
-
-    if ((user?.accountType !== "google") && (!userVerification?.verified) ) {
-      const user = await User.findOneAndUpdate(
-        { email: data?.email },
-        {
-          accountType: "google",
-        }
-      );
-    }
-
-
-    // const emailAlreadyExists = await User.findOne({ email: data.email });
-    // if (!emailAlreadyExists) {
-    //   const user = await User.create({})
-    // }
-  } catch (err) {
-    console.log("Error logging in with OAuth2 user", err);
+    return res.status(StatusCodes.OK).json({
+      user,
+      accessToken: newUser?.createAccessToken(),
+      refreshToken: newUser?.createRefreshToken(),
+    });
   }
 
-  // res.redirect(303, "http://localhost:5173/");
+  if (user?.verified && user?.accountType === "email") {
+    throw new BadRequestError(
+      "E-mail that you provide was already in used , Please try other account"
+    );
+  }
+
+  if (!user?.verified && user?.accountType === "email") {
+    const updatedUser = await User.findOneAndUpdate(
+      { email: data?.email },
+      { verified: true, accountType: "google" }
+    );
+    return res.status(StatusCodes.OK).json({
+      accessToken: updatedUser?.createAccessToken(),
+      refreshToken: updatedUser?.createRefreshToken(),
+    });
+  }
+
+  res.status(StatusCodes.OK).json({
+    user,
+    accessToken: user?.createAccessToken(),
+    refreshToken: user?.createRefreshToken(),
+  });
 };
 
 export {
