@@ -41,7 +41,7 @@ export default function SmallNavbar(props: INavDialog) {
         onClick={() => {
           setIsDrawerOpen(!isDrawerOpen);
         }}
-        className="hidden sm:flex z-[2] absolute top-0  w-[100%] justify-end pr-7 pt-5 text-white text-2xl "
+        className="hidden sm:flex z-[2] absolute top-0  w-[100%] justify-end pr-7 transition-all pt-5 text-gray-900 hover:text-primary-500 text-2xl "
       >
         <RiMenu3Line />
       </button>

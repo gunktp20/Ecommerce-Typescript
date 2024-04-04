@@ -76,21 +76,94 @@ paths:
           description: Verified E-mail successfully
   "/user/password/":
     put:
-        tags:
-          - user
-        summary: Set initial password
-        description: ""
-        produces:
+      tags:
+        - user
+      summary: Set initial password
+      description: ""
+      produces:
         - application/json
-        parameters:
-          - in: body
-            name: body
-            required: true
-            schema:
-              $ref: "#/definitions/SetPassword"
-        responses:
-          "200":
-            description: Your Password was set
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/SetPassword"
+      responses:
+        "200":
+          description: Your Password was set
+  "/product/":
+    get:
+      tags:
+        - product
+      summary: get all products
+      description: ""
+      responses:
+        "200":
+          description: all products
+    post:
+      tags:
+        - product
+      summary: Insert new product
+      description: ""
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/InsertProduct"
+  "/product/{productID}":
+    get:
+      tags:
+        - product
+      summary: get product info by id
+      description: ""
+      parameters:
+        - name: productID
+          in: path
+          description: product id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: product info from product id that you sent
+    delete:
+      tags:
+        - product
+      summary: delete product with id
+      description: ""
+      parameters:
+        - name: productID
+          in: path
+          description: product id
+          required: true
+          type: string
+      responses:
+        "200":
+          description: deleted your product
+  "/cart/":
+    get:
+      tags:
+        - cart
+      summary: get all order of every user
+      description: ""
+      parameters:
+      responses:
+        "200":
+          description: all order 
+    post:
+      tags:
+        - cart
+      summary: insert product into cart for user with email
+      description: ""
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/AddProductInToCart"
+      responses:
+        "200":
+          description: inserted product into cart successfully
 definitions:
   UserLogin:
     properties:
@@ -108,4 +181,31 @@ definitions:
         type: string
       password:
         type: string
-
+  InsertProduct:
+    properties:
+      name:
+        type: string
+        default: Product Name
+      description:
+        type: string
+        default: Product Description
+      price:
+        type: number
+        default: Product Price
+      category:
+        type: string
+        default: Product Category
+      img:
+        type: string
+        default: Product Image
+  AddProductInToCart:
+    properties:
+      productID:
+        type: string
+        default: 660be1e188056d17db2ff4e4
+      email:
+        type: string
+        default: arrliver@gmail.com
+      quantity:
+        type: number
+        default: 1

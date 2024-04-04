@@ -2,6 +2,8 @@ import notFoundMiddleware from "./middlewares/not-found";
 import errorHandlerMiddleware from "./middlewares/error-handler";
 import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
+import productRouter from "./routes/product.routes";
+import cartRouter from "./routes/cart.routes";
 import express from "express";
 import connectDB from "./db/connect";
 import logger from "./utils/logger";
@@ -36,7 +38,6 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument2));
 
 app.use(logger);
 
@@ -49,6 +50,8 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/user", userRouter);
+app.use("/product", productRouter);
+app.use("/cart", cartRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);

@@ -1,16 +1,16 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HandlerDirect, ProtectedRoute } from "./components";
-// import AdminPanel from "./pages/AdminPanel";
 import SharedLayout from "./pages/SharedLayout";
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import { useAppSelector } from "./app/hook";
+import ProductList from "./pages/ProductList/index.tsx";
+import ManageProduct from "./pages/Admin/ManageProduct.tsx";
+import AddProduct from "./pages/Admin/AddProduct.tsx";
+import EditProduct from "./pages/Admin/EditProduct.tsx";
+import RequireAdmin from "./components/RequireAdmin.tsx";
 
 function App() {
-
-  const authStorage = useAppSelector(state => state.auth)
-
   return (
     <BrowserRouter>
       <Routes>
@@ -22,37 +22,42 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Landing/>}/>
+          <Route index element={<Landing />} />
+          <Route path="product" element={<ProductList />} />
+          <Route path="product/:product_id" />
+          <Route path="cart" />
+        </Route>
+        <Route
+          path="/admin"
+          element={
+            <RequireAdmin>
+              <SharedLayout />
+            </RequireAdmin>
+          }
+        >
+          <Route index element={<ManageProduct />} />
+          <Route path="add-product" element={<AddProduct />} />
+          <Route path="product/:productID" element={<EditProduct />} />
         </Route>
         {/* <Route path="/register" element={<Register />} /> */}
         <Route path="/home" element={<Landing />} />
-        <Route path="/register" element={
-          <HandlerDirect>
-            <Register />
-          </HandlerDirect>
-        } />
-        <Route path="/login" element={<HandlerDirect>
-          <Login />
-        </HandlerDirect>} />
-        {/* <Route path="/admin" element={<AdminPanel />} /> */}
-        {/* <Route
-          path="/product"
+        <Route
+          path="/register"
           element={
-            <ProtectedRoute>
-              <ProductList />
-            </ProtectedRoute>
+            <HandlerDirect>
+              <Register />
+            </HandlerDirect>
           }
         />
         <Route
-          path="/cart"
+          path="/login"
           element={
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
+            <HandlerDirect>
+              <Login />
+            </HandlerDirect>
           }
-        /> */}
+        />
       </Routes>
-
     </BrowserRouter>
   );
 }

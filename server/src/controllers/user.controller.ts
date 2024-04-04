@@ -4,7 +4,7 @@ import "express-async-errors";
 import { BadRequestError } from "../errors";
 import User from "../models/User";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 
 interface IJwtPayload extends JwtPayload {
   email: string;
@@ -45,12 +45,12 @@ const setPassword = async (req: Request, res: Response) => {
     token,
     process.env.JWT_EMAIL_VERIFIED as string
   )) as IJwtPayload;
-  const isUserExist = await User.findOne({ email });
-  if (!isUserExist) {
+  const user = await User.findOne({ email });
+  if (!user) {
     throw new BadRequestError("Not found your account");
   }
 
-  if (isUserExist.password) {
+  if (user.password) {
     throw new BadRequestError(
       "Can't set your password , You're alraeady define password"
     );
@@ -58,8 +58,11 @@ const setPassword = async (req: Request, res: Response) => {
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
-  await User.findOneAndUpdate({ email }, { password: hashedPassword });
-  res.status(StatusCodes.OK).json({ msg: "Your password was set" });
+  user.password = hashedPassword;
+  user?.save();
+  const accessToken = await user.createAccessToken();
+  const refreshToken = await user.createRefreshToken();
+  res.status(StatusCodes.OK).json({ user, accessToken, refreshToken });
 };
 
 export { setPassword, uploadImage, getUserInfo };

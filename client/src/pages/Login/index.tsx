@@ -15,24 +15,22 @@ import { FaLock } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
 import { IoMdEyeOff } from "react-icons/io";
 import { AxiosError } from "axios";
-import LoginWithGoogleModal from "../../components/LoginWithGoogleModal";
 import { gapi } from "gapi-script";
-import { useGoogleLogin } from "react-google-login";
+import { GoogleLoginResponse, GoogleLoginResponseOffline, useGoogleLogin, UseGoogleLoginResponse } from "react-google-login";
 
-function SetUpUser() {
+function Login() {
   const navigate = useNavigate();
-  const authStorage = useAppSelector(state => state.auth)
+  const authStorage = useAppSelector((state) => state.auth);
   if (authStorage.user || authStorage.token) {
-    navigate("/")
+    navigate("/");
   }
   const dispatch = useAppDispatch();
 
-  const onSuccess = async (res) => {
-    console.log("LOGIN SUCCESS ! Current user:", res.profileObj);
-    console.log("res_tokenObj", res.tokenObj);
+  const onSuccess = async (res: GoogleLoginResponse | GoogleLoginResponseOffline) => {
+    const tokens = "profileObj" in res ? res.tokenObj : undefined
     try {
       const { data } = await api.post(`/auth/google-auth/`, {
-        tokens: { ...res.tokenObj },
+        tokens,
       });
       setIsLoading(false);
       dispatch(setCredential({ user: data?.user, token: data?.accessToken }));
@@ -51,29 +49,24 @@ function SetUpUser() {
       }
     }
   };
-  const onFailure = (res) => {
+  const onFailure = (res: GoogleLoginResponse | GoogleLoginResponseOffline) => {
     console.log("LOGIN FAILED! res:", res);
   };
 
-  const clientId = "58393219866-rgf9c2p16vop971javfn875ehtigi20k.apps.googleusercontent.com";
+  const clientId =
+    "58393219866-rgf9c2p16vop971javfn875ehtigi20k.apps.googleusercontent.com";
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [alertType, setAlertType] = useState<"info" | "success" | "error">(
     "error"
   );
-  const { signIn, loaded } = useGoogleLogin({
+  const { signIn } = useGoogleLogin({
     onSuccess,
     onFailure,
     clientId,
     cookiePolicy: "single_host_origin",
     isSignedIn: false,
-  })
-
-
-  // function navigateCB(url: string) {
-  //   // window.location.href = url;
-  //   window.open(url);
-  // }
+  });
 
   function start() {
     gapi.client.init({
@@ -83,12 +76,6 @@ function SetUpUser() {
   }
 
   useEffect(() => {
-    // if (authStorage.user) {
-    //   setTimeout(() => {
-    //     navigate("/");
-    //   });
-    // }
-
     gapi.load("client:auth2", start);
   }, []);
 
@@ -143,7 +130,6 @@ function SetUpUser() {
   //     setIsLoading(false);
   //   }
   // };
-
 
   return (
     <Wrapper>
@@ -248,10 +234,14 @@ function SetUpUser() {
             {/* <div className="absolute text-red-500 text-[11.4px] bottom-[-1.3rem]">
                 {isFormattEmailValid ? "" : "* please provide a valid e-mail"}
               </div> */}
-
           </div>
           <div className="flex w-[100%] justify-end mb-3">
-            <Link to="/forget-pass" className="text-[10.5px] font-bold text-primary-600 hover:text-primary-700">Forget Password ?</Link>
+            <Link
+              to="/forget-pass"
+              className="text-[10.5px] font-bold text-primary-600 hover:text-primary-700"
+            >
+              Forget Password ?
+            </Link>
           </div>
           <button
             onClick={login}
@@ -275,12 +265,20 @@ function SetUpUser() {
               "Sign In"
             )}
           </button>
-          <div className="flex item w-[100%] justify-end mb-6" >
-            <div className="text-[10.8px]">Not a member yet ? <Link to="/register" className="text-primary-600 hover:text-primary-600">Sign Up</Link></div>
+          <div className="flex item w-[100%] justify-end mb-6">
+            <div className="text-[10.8px]">
+              Not a member yet ?{" "}
+              <Link
+                to="/register"
+                className="text-primary-600 hover:text-primary-600"
+              >
+                Sign Up
+              </Link>
+            </div>
           </div>
           <div className="flex relative justify-center items-center mb-10 mt-9">
-            <div className="absolute bg-white z-[2] px-2 rounded-[100%] text-gray-600 text-sm">
-              OR
+            <div className="absolute bg-white z-[2] px-2 rounded-[100%] text-gray-600 text-[11.3px]">
+              Or Social Media
             </div>
             <div className="bg-gray-300 absolute w-[80%] h-[1px]"></div>
           </div>
@@ -305,4 +303,4 @@ function SetUpUser() {
   );
 }
 
-export default SetUpUser;
+export default Login;

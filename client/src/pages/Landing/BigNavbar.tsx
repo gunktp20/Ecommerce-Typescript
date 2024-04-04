@@ -1,15 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../app/hook";
 import { useEffect, useState } from "react";
-// import api from "../../services/api";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
-
-// interface IProp {
-//   isMember: boolean;
-//   setIsMember: (_: boolean) => void;
-//   isDrawerOpen: boolean;
-//   setIsDrawerOpen: (_: boolean) => void;
-// }
 
 function BigNavbar() {
   const navigate = useNavigate();

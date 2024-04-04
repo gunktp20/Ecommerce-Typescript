@@ -70,7 +70,7 @@ UserSchema.methods.verifyOTP = async function (OTP: string) {
 
 UserSchema.methods.createAccessToken = function () {
   return jwt.sign(
-    { userId: this._id, role: this.role, phoneNumber: this.phoneNumber },
+    { userId: this._id, role: this.role, email: this.email },
     process.env.JWT_SECRET_ACCESS as string,
     {
       expiresIn: "60m",
@@ -80,7 +80,7 @@ UserSchema.methods.createAccessToken = function () {
 
 UserSchema.methods.createRefreshToken = function () {
   return jwt.sign(
-    { userId: this._id, role: this.role, phoneNumber: this.phoneNumber },
+    { userId: this._id, role: this.role, email: this.email },
     process.env.JWT_SECRET_REFRESH as string,
     {
       expiresIn: "1d",
@@ -91,6 +91,7 @@ UserSchema.methods.createRefreshToken = function () {
 UserSchema.methods.comparePassword = async function (
   candidatePassword: string
 ) {
+  console.log("candidatePassword", candidatePassword);
   const isMatch = await bcrypt.compare(candidatePassword, this.password);
   return isMatch;
 };

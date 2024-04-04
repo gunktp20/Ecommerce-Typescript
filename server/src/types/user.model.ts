@@ -8,6 +8,7 @@ export interface User {
   OTP: string;
   otpExpiresIn: Date;
   verified: boolean;
+  profileURL: string;
   itemsInCart: [];
 }
 

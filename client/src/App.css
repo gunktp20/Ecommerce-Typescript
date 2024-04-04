@@ -1,9 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300&display=swap');
+:root {
+  /* colors */
+  --primary-50: #e9f3ff;
+  --primary-100: #D9F0FE;
+  --primary-200: #B3DFFE;
+  --primary-300: #8CCAFE;
+  --primary-400: #70B5FD;
+  --primary-500: #4195FC;
+  --primary-600: #2F73D8;
+  --primary-700: #2056B5;
+  --primary-800: #143C92;
+  --primary-900: #0C2978;
+
+  /* grey */
+  --grey-50: #F8FAFC;
+  --grey-100: #d9e2ec;
+  --grey-200: #bcccdc;
+  --grey-300: #9fb3c8;
+  --grey-400: #829ab1;
+  --grey-500: #627d98;
+  --grey-600: #486581;
+  --grey-700: #334e68;
+  --grey-800: #243b53;
+  --grey-900: #102a43;
+  /* rest of the colors */
+  --black: #222;
+  --white: #fff;
+  --red-light: #f8d7da;
+  --red-dark: #842029;
+  --green-light: #d1e7dd;
+  --green-dark: #0f5132;
+
+  /* fonts  */
+  --headingFont: 'Roboto Condensed', Sans-Serif;
+  --bodyFont: 'Cabin', Sans-Serif;
+  --small-text: 0.875rem;
+  --extra-small-text: 0.7em;
+  /* rest of the vars */
+  --backgroundColor: var(--grey-50);
+  --textColor: var(--grey-900);
+  --borderRadius: 0.25rem;
+  --letterSpacing: 1px;
+  --transition: 0.3s ease-in-out all;
+  --max-width: 1120px;
+  --fixed-width: 500px;
+  --fluid-width: 90vw;
+  --breakpoint-lg: 992px;
+  --nav-height: 6rem;
+  /* box shadow*/
+  --shadow-1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-2: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-3: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-4: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
 *{
   /* font-family: "Kanit", sans-serif; */
   margin:0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif;
+  /* font-family: Arial, Helvetica, sans-serif; */
 }
 
 body{
@@ -41,4 +100,67 @@ body{
 
   .MuiSnackbar-anchorOriginTopRight {
     top: 90px !important;
+  }
+
+  .btn-hipster {
+    color: var(--primary-500);
+    background: var(--primary-200);
+  }
+  .btn-hipster:hover {
+    color: var(--primary-200);
+    background: var(--primary-700);
+  }
+  .btn-block {
+    width: 100%;
+    
+  }
+  .btn-hero {
+    font-size: 17px;
+    padding: 0.5rem 1.25rem;
+  }
+  .btn-edit {
+    /* parent color #fcc120 */
+    background: #feeea5bc;
+    color: #92620A;
+    margin-right:1rem;
+  }
+  .btn-edit:hover {
+    background: #554318;
+    color: #fff;
+  }
+  .btn-danger {
+    background: var(--red-light);
+    color: var(--red-dark);
+  }
+  .btn-danger:hover {
+    background: var(--red-dark);
+    color: var(--white);
+  }
+  .btn-confirm{
+    background: var(--primary-500);
+    margin-left:1rem;
+    color: var(--white);
+    height: 35px;
+    padding-right:1rem;
+    padding-left: 1rem;
+  }
+  .btn-confirm:hover{
+    background: var(--primary-500);
+    margin-left:1rem;
+    color: var(--white);
+    height: 35px;
+  }
+  .btn-cancel{
+    margin-left:1rem;
+    background: var(--red-light);
+    color: var(--red-dark);
+    height: 35px;
+    padding-right:1rem;
+    padding-left: 1rem;
+  }
+  .btn-cancel:hover{
+    margin-left:1rem;
+    background: var(--red-light);
+    color: var(--red-dark);
+    height: 35px;
   }

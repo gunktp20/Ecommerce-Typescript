@@ -1,8 +1,11 @@
-import styled from 'styled-components'
+import styled from "styled-components";
 
 const Wrapper = styled.main`
-  width:100wh;
-  height:100vh;
-  background-color:#ffffff;
-`
-export default Wrapper
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background-color: #fff;
+  position: relative;
+  flex-direction: column;
+`;
+export default Wrapper;

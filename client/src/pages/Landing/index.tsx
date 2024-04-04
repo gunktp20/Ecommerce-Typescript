@@ -3,14 +3,15 @@ import Wrapper from "../../assets/wrappers/Landing";
 import BigNavbar from "./BigNavbar";
 import LandingWallpaper from "./LandingWallpaper";
 import SmallNavbar from "./SmallNavbar";
+import { useNavigate } from "react-router-dom";
 
 function Landing() {
-
   const [isNavlinksOpen, setIsNavlinksOpen] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   return (
     <Wrapper>
-      <BigNavbar/>
+      <BigNavbar />
 
       <SmallNavbar
         isDrawerOpen={isNavlinksOpen}
@@ -27,7 +28,12 @@ function Landing() {
             perferendis excepturi velit impedit neque obcaecati facilis
             molestiae doloribus consequatur nemo.
           </div>
-          <button className=" mt-6 py-4 px-9 rounded-[100px] bg-[#DB2636] hover:bg-[#B71A2A] transition-all font-normal text-left text-white">
+          <button
+            onClick={() => {
+              navigate("/product");
+            }}
+            className=" mt-6 py-4 px-9 rounded-[100px] bg-[#DB2636] hover:bg-[#B71A2A] transition-all font-normal text-left text-white"
+          >
             LET'S START
           </button>
         </div>
